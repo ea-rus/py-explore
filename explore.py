@@ -2,6 +2,9 @@ import traceback
 import sys
 import inspect
 
+try: input = raw_input
+except NameError: pass
+
 COMMANDS={'go':'go:\tResume execute program',
           'goend':'goend:\tResume execute and discart current breakpoint',
           'info':'info:\tPrint this help',
@@ -16,7 +19,7 @@ WELCOME=True
 def welcome():
     global WELCOME
     if WELCOME:
-        print "Type 'info' for help"
+        print ("Type 'info' for help")
         WELCOME=False
 
 
@@ -31,7 +34,7 @@ def completer(text,state):
     m = re.match('^([^\n]*[*-+\/]{1})([^*+-\/]+$)',text)
     begin=''
     if m!=None:
-      print m.groups()
+      print (m.groups())
       begin=m.group(1)
       text=m.group(2)
     match=[]
@@ -42,7 +45,7 @@ def completer(text,state):
         attrpath=text[n+1:]
         try:
             obj=eval(objname,GLOB,LOC)
-        except (SystemError, KeyboardInterrupt), e: raise
+        except (SystemError, KeyboardInterrupt) as e: raise
         except:
             return None
         for attr in dir(obj):
@@ -71,13 +74,13 @@ def stop():
 def handle_error(fn,*ar,**kw):
     try:
        fn(*ar,**kw)
-    except (SystemError, KeyboardInterrupt), e: raise
+    except (SystemError, KeyboardInterrupt) as e: raise
     except: 
-       print from_traceback()
+       print (from_traceback())
 
     
 def from_traceback():
-    print traceback.format_exc()
+    print (traceback.format_exc())
     tb=sys.exc_info()[2]
     stack=[]
     while tb:
@@ -108,15 +111,15 @@ def navigate(stack):
         try:
           r=eval(CONDITION_POINTS[point],frame.f_locals,frame.f_globals)
           if not r: return
-        except (SystemError, KeyboardInterrupt), e: raise
+        except (SystemError, KeyboardInterrupt) as e: raise
         except: 
-          print traceback.format_exc()
+          print (traceback.format_exc())
           #stop on error
         CONDITION_POINTS.pop(point)  
 
     welcome()    
     while True:
-      line=raw_input(point[-20:]+'>')
+      line=input(point[-20:]+'>')
       
       if line in ('go','goend'): 
           if line=='goend': DISCART_POINTS.append(point)
@@ -125,13 +128,13 @@ def navigate(stack):
           
       elif line == 'up': 
           if level>=len(stack):
-             print 'No up level' 
+             print ('No up level' )
           level+=1
           frame,point=set_env(stack, level)
           
       elif line == 'down': 
           if level<=0:
-             print 'No down level' 
+             print ('No down level' )
           level+=-1
           frame,point=set_env(stack, level)
       
@@ -144,11 +147,11 @@ def navigate(stack):
                 l='>'+l[1:]
              st.append(l )
           st.reverse()
-          print '\n'.join(st)
+          print ('\n'.join(st))
 
       elif line=='info':
           for i in COMMANDS:
-            print COMMANDS[i]
+            print (COMMANDS[i])
       elif line=='exit':
           sys.exit(0)
       elif line.startswith('gowhere '):
@@ -158,9 +161,9 @@ def navigate(stack):
             CONDITION_POINTS[point]=cond
             LOC,GLOB=None,None
             break
-          except (SystemError, KeyboardInterrupt), e: raise
+          except (SystemError, KeyboardInterrupt) as e: raise
           except:
-             print traceback.format_exc()
+             print (traceback.format_exc())
       elif len(line)>1 and line[-1]=='?':
           #inspect object
           inspect_obj(line[:-1])
@@ -170,27 +173,27 @@ def navigate(stack):
 def inspect_obj(line):
     try:
        obj=eval(line,GLOB,LOC)
-    except (SystemError, KeyboardInterrupt), e: raise
+    except (SystemError, KeyboardInterrupt) as e: raise
     except:
-       print "Object '%s' not found" % line
+       print ("Object '%s' not found" % line)
     else:
-       try: print '\t',obj.__class__
+       try: print ('\t',obj.__class__)
        except AttributeError: pass
-       try: print '\t',inspect.getabsfile(obj)
+       try: print ('\t',inspect.getabsfile(obj))
        except (NameError, TypeError): pass
        if inspect.isfunction(obj):
-          print '\tDefinition: ' + obj.__name__ + inspect.formatargspec(*inspect.getargspec(obj))
-       print ' ',obj.__doc__
+          print ('\tDefinition: ' + obj.__name__ + inspect.formatargspec(*inspect.getargspec(obj)))
+       print (' ',obj.__doc__)
        
 def execute(line):
     global LOC,GLOB
     if not re.match('^[a-zA-Z0-9]*[\=]{1}',line) and not (line.startswith('print') or line.startswith('import')):
-       line = 'print repr(' + line +')'
+       line = 'print (repr(' + line +'))'
     try:
-      exec line in LOC,GLOB
-    except (SystemError, KeyboardInterrupt), e: raise
+      exec (line , LOC,GLOB)
+    except (SystemError, KeyboardInterrupt) as e: raise
     except:
-      print traceback.format_exc()
+      print (traceback.format_exc())
 
 try:
     import readline
