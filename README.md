@@ -1,7 +1,12 @@
 # py-explore
 Pyhon debuging tool
 
-usage:
+**install**
+```
+pip install git+https://github.com/ea-rus/py-explore
+```
+
+**usage**:
 ```
 import  explore 
 
