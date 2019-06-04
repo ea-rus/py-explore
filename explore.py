@@ -187,10 +187,10 @@ def inspect_obj(line):
        
 def execute(line):
     global LOC,GLOB
-    if not re.match('^[a-zA-Z0-9]*[\=]{1}',line) and not (line.startswith('print') or line.startswith('import')):
+    if not re.match('^[a-zA-Z0-9\s]*[\=]{1}',line) and not (line.startswith('print') or line.startswith('import')):
        line = 'print (repr(' + line +'))'
     try:
-      exec (line , LOC,GLOB)
+       exec(line , LOC,GLOB)
     except (SystemError, KeyboardInterrupt) as e: raise
     except:
       print (traceback.format_exc())
