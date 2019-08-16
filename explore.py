@@ -13,6 +13,7 @@ COMMANDS={'go':'go:\tResume execute program',
           'up':'up:\tUp one level', 
           'down':'down:\tDown one level',
           'stack':'stack:\tShow stack',
+          'save': 'save [var]:\tSave var in file',
           }
           
 WELCOME=True
@@ -119,7 +120,7 @@ def navigate(stack):
 
     welcome()    
     while True:
-      line=input(point[-20:]+'>')
+      line=input(point[-20:]+'>').strip()
       
       if line in ('go','goend'): 
           if line=='goend': DISCART_POINTS.append(point)
@@ -164,9 +165,31 @@ def navigate(stack):
           except (SystemError, KeyboardInterrupt) as e: raise
           except:
              print (traceback.format_exc())
+      elif line.startswith('save '):
+          obj=line[len('save '):]
+          try:
+            varname = re.sub('[^\w]+', '', obj)
+            obj=eval(obj,GLOB,LOC)
+
+            if isinstance(obj,bytes):
+                obj = obj.decode()
+            elif isinstance(obj,str):
+                pass
+            else:
+                obj = str(obj)
+
+            open('out{}.txt'.format(varname), 'w').write(obj)
+
+            LOC,GLOB=None,None
+            break
+          except (SystemError, KeyboardInterrupt) as e: raise
+          except:
+             print (traceback.format_exc())
       elif len(line)>1 and line[-1]=='?':
           #inspect object
           inspect_obj(line[:-1])
+      elif line == '':
+          pass
       else:
           execute(line)  
 

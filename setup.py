@@ -14,7 +14,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 setup(
 
     name='py-explore',  # Required
-    version='0.0.2',  # Required
+    version='0.0.3',  # Required
     description='Pyhon debuging tool',  # Required
     long_description=long_description,  # Optional
     url='https://github.com/ea-rus/py-explore',  # Optional
