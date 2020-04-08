@@ -13,6 +13,7 @@ COMMANDS={'go':'go:\tResume execute program',
           'up':'up:\tUp one level', 
           'down':'down:\tDown one level',
           'stack':'stack:\tShow stack',
+          'stack ':'stack LEVEL:\tGo to selected level',
           'save': 'save [var]:\tSave var in file',
           }
           
@@ -141,15 +142,18 @@ def navigate(stack):
       
       elif line =='stack': 
           st=[]
-          for xlevel in range(len(stack)):
+          stack_len = len(stack)
+          for xlevel in range(stack_len):
              xframe=stack[xlevel]
-             l=' \t%s:%s' % (xframe.f_code.co_filename,xframe.f_lineno)
+             l='%s \t%s:%s' % (xlevel, xframe.f_code.co_filename,xframe.f_lineno)
              if xlevel==level:
                 l='>'+l[1:]
-             st.append(l )
+             st.append(l)
           st.reverse()
           print ('\n'.join(st))
-
+      elif re.match('stack [\d]+$', line):
+          level += int(line[5:])
+          frame, point = set_env(stack, level)
       elif line=='info':
           for i in COMMANDS:
             print (COMMANDS[i])
