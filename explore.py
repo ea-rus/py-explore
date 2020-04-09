@@ -5,16 +5,16 @@ import inspect
 try: input = raw_input
 except NameError: pass
 
-COMMANDS={'go':'go:\tResume execute program',
-          'goend':'goend:\tResume execute and discart current breakpoint',
+COMMANDS={'go':'go:\tResume program execution',
+          'goend':'goend:\tResume execution and turn off current breakpoint',
           'info':'info:\tPrint this help',
-          'exit':'exit:\tFinish programm',
-          'gowhere ':'gowhere [condition]:\tIf stop-point in cicle, stop when [condition] is true',
-          'up':'up:\tUp one level', 
-          'down':'down:\tDown one level',
-          'stack':'stack:\tShow stack',
-          'stack ':'stack LEVEL:\tGo to selected level',
-          'save': 'save [var]:\tSave var in file',
+          'exit':'exit:\tTry to sys.exit',
+          'gowhere ':'gowhere [condition]:\tStop at this breakpoint only when [condition] is true',
+          'up':'up:\tUp one level in stack',
+          'down':'down:\tDown one level in stack',
+          'stack':'stack:\tShow full stack',
+          'stack ':'stack LEVEL:\tGo to selected level in stack',
+          'save': 'save [var]:\tSave var to file',
           }
           
 WELCOME=True
