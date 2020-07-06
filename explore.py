@@ -214,10 +214,10 @@ def inspect_obj(line):
        
 def execute(line):
     global LOC,GLOB
-    if not re.findall('[^\=]{1}[\=]{1}[^\=]{1}',line) and not (line.startswith('print') or line.startswith('import')):
+    if not re.findall('[^\=]{1}[\=]{1}[^\=]{1}',line) and not (line.startswith('print') or line.startswith('import ') or line.startswith('from ')):
        line = 'print (repr(' + line +'))'
     try:
-       exec(line , LOC,GLOB)
+       exec(line, LOC, GLOB)
     except (SystemError, KeyboardInterrupt) as e: raise
     except:
       print (traceback.format_exc())
