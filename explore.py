@@ -85,11 +85,18 @@ def from_traceback():
     print (traceback.format_exc())
     tb=sys.exc_info()[2]
     stack=[]
+
     while tb:
         stack.append(tb.tb_frame)
         tb=tb.tb_next
     stack.reverse()
-    return navigate(stack)
+    # autoselect level
+    level = 0
+    for lev, frame in enumerate(stack):
+        if not 'site-packages' in frame.f_code.co_filename:
+            level = lev
+            break
+    return navigate(stack, level=level)
     
 def set_env(stack, level):
     global LOC,GLOB,COMMANDS,DISCART_POINTS
@@ -101,10 +108,10 @@ def set_env(stack, level):
     point = '%s:%s' % (frame.f_code.co_filename,frame.f_lineno)
     return frame , point   
     
-def navigate(stack):
+def navigate(stack, level=0):
     global LOC,GLOB,COMMANDS,DISCART_POINTS
         
-    level=0
+
     frame, point=set_env(stack, level)
     
     if point in DISCART_POINTS:
@@ -152,7 +159,9 @@ def navigate(stack):
           st.reverse()
           print ('\n'.join(st))
       elif re.match('stack [\d]+$', line):
-          level += int(line[5:])
+          lev = int(line[5:])
+          if lev >= 0 and lev < len(stack):
+              level = lev
           frame, point = set_env(stack, level)
       elif line=='info':
           for i in COMMANDS:
