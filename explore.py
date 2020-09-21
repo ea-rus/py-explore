@@ -1,21 +1,24 @@
 import traceback
 import sys
 import inspect
+import os
 
 try: input = raw_input
 except NameError: pass
 
-COMMANDS={'go':'go:\tResume program execution',
-          'goend':'goend:\tResume execution and turn off current breakpoint',
-          'info':'info:\tPrint this help',
-          'exit':'exit:\tTry to sys.exit',
-          'gowhere ':'gowhere [condition]:\tStop at this breakpoint only when [condition] is true',
-          'up':'up:\tUp one level in stack',
-          'down':'down:\tDown one level in stack',
-          'stack':'stack:\tShow full stack',
-          'stack ':'stack LEVEL:\tGo to selected level in stack',
-          'save': 'save [var]:\tSave var to file',
-          }
+COMMANDS={
+  'go':'go:\tResume program execution',
+  'goend':'goend:\tResume execution and turn off current breakpoint',
+  'info':'info:\tPrint this help',
+  'exit':'exit:\tTry to sys.exit',
+  'gowhere ':'gowhere [condition]:\tStop at this breakpoint only when [condition] is true',
+  'up':'up:\tUp one level in stack',
+  'down':'down:\tDown one level in stack',
+  'stack':'stack:\tShow full stack',
+  'stack ':'stack LEVEL:\tGo to selected level in stack',
+  'save': 'save [var]:\tSave var to file',
+  'whereami': 'go:\tPrint code of breakpoint',
+}
           
 WELCOME=True
 def welcome():
@@ -46,8 +49,8 @@ def completer(text,state):
         objname=text[:n]
         attrpath=text[n+1:]
         try:
-            obj=eval(objname,GLOB,LOC)
-        except (SystemError, KeyboardInterrupt) as e: raise
+            obj=eval(objname, LOC, GLOB)
+        except (SystemError) as e: raise
         except:
             return None
         for attr in dir(obj):
@@ -93,7 +96,9 @@ def from_traceback():
     # autoselect level
     level = 0
     for lev, frame in enumerate(stack):
-        if not 'site-packages' in frame.f_code.co_filename:
+        filename = frame.f_code.co_filename
+        # TODO pandas name
+        if not 'site-packages' in filename and not 'pandas/' in filename:
             level = lev
             break
     return navigate(stack, level=level)
@@ -106,7 +111,7 @@ def set_env(stack, level):
     LOC= frame.f_locals
     GLOB = frame.f_globals
     point = '%s:%s' % (frame.f_code.co_filename,frame.f_lineno)
-    return frame , point   
+    return frame, point
     
 def navigate(stack, level=0):
     global LOC,GLOB,COMMANDS,DISCART_POINTS
@@ -168,10 +173,29 @@ def navigate(stack, level=0):
             print (COMMANDS[i])
       elif line=='exit':
           sys.exit(0)
+      elif re.match('whereami [\d]+$', line) or line == 'whereami':
+          window = 3
+          ar = line.split(' ')
+          if len(ar) > 1 and ar[1].isdigit():
+              window = int(ar[1])
+
+          fname = frame.f_code.co_filename
+          lineno = frame.f_lineno
+          if os.path.exists(fname):
+              try:
+                  with open(fname) as fd:
+                      for num, line in enumerate(fd, 1):
+                         if abs(lineno - num) <= window:
+                            cursor = '>' if lineno == num else ' '
+                            print(f'{cursor}{num}\t{line[:-1]}')
+                  continue
+              except OSError:
+                  pass
+          print(':(')
       elif line.startswith('gowhere '):
           cond=line[len('gowhere '):]
           try:
-            obj=eval(cond,GLOB,LOC)
+            obj=eval(cond, LOC, GLOB)
             CONDITION_POINTS[point]=cond
             LOC,GLOB=None,None
             break
@@ -182,7 +206,7 @@ def navigate(stack, level=0):
           obj=line[len('save '):]
           try:
             varname = re.sub('[^\w]+', '', obj)
-            obj=eval(obj,GLOB,LOC)
+            obj=eval(obj, LOC, GLOB)
 
             if isinstance(obj,bytes):
                 obj = obj.decode()
@@ -208,8 +232,8 @@ def navigate(stack, level=0):
 
 def inspect_obj(line):
     try:
-       obj=eval(line,GLOB,LOC)
-    except (SystemError, KeyboardInterrupt) as e: raise
+       obj=eval(line, LOC, GLOB)
+    except (SystemError) as e: raise
     except:
        print ("Object '%s' not found" % line)
     else:
@@ -227,7 +251,7 @@ def execute(line):
        line = 'print (repr(' + line +'))'
     try:
        exec(line, LOC, GLOB)
-    except (SystemError, KeyboardInterrupt) as e: raise
+    except (SystemError) as e: raise
     except:
       print (traceback.format_exc())
 
