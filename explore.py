@@ -2,6 +2,7 @@ import traceback
 import sys
 import inspect
 import os
+import re
 
 try: input = raw_input
 except NameError: pass
@@ -17,7 +18,7 @@ COMMANDS={
   'stack':'stack:\tShow full stack',
   'stack ':'stack LEVEL:\tGo to selected level in stack',
   'save': 'save [var]:\tSave var to file',
-  'whereami': 'go:\tPrint code of breakpoint',
+  'whereami': 'whereami [N]:\tPrint code of breakpoint [+ nearest N lines]',
 }
           
 WELCOME=True
@@ -82,7 +83,7 @@ def handle_error(fn,*ar,**kw):
     except (SystemError, KeyboardInterrupt) as e: raise
     except: 
        print (from_traceback())
-
+#
     
 def from_traceback():
     print (traceback.format_exc())
@@ -115,7 +116,9 @@ def set_env(stack, level):
     
 def navigate(stack, level=0):
     global LOC,GLOB,COMMANDS,DISCART_POINTS
-        
+
+    if not sys.stdout.isatty():
+        return
 
     frame, point=set_env(stack, level)
     
@@ -186,7 +189,7 @@ def navigate(stack, level=0):
                   with open(fname) as fd:
                       for num, line in enumerate(fd, 1):
                          if abs(lineno - num) <= window:
-                            cursor = '>' if lineno == num else ' '
+                            cursor = '->' if lineno == num else '  '
                             print(f'{cursor}{num}\t{line[:-1]}')
                   continue
               except OSError:
@@ -215,10 +218,10 @@ def navigate(stack, level=0):
             else:
                 obj = str(obj)
 
-            open('out{}.txt'.format(varname), 'w').write(obj)
+            open('out_{}.txt'.format(varname), 'w').write(obj)
 
             LOC,GLOB=None,None
-            break
+
           except (SystemError, KeyboardInterrupt) as e: raise
           except:
              print (traceback.format_exc())
