@@ -262,7 +262,7 @@ try:
     import readline
     readline.parse_and_bind("tab: complete")
     readline.set_completer(completer)
-    import re,keyword
+    import keyword
 except ImportError:
     pass    
 
